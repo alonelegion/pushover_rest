@@ -1,7 +1,9 @@
 package apiserver
 
-import "fmt"
+import (
+	"github.com/alonelegion/pushover_rest/internal/application"
+)
 
 func main() {
-	fmt.Println("Hello World!")
+	application.Init()
 }
