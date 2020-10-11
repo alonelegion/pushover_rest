@@ -1,14 +1,14 @@
 package application
 
 import (
+	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
 // Database initialization
-func LoadDB(dialect, url string) (*gorm.DB, error) {
-	return gorm.Open(dialect, url)
+func LoadDB(driver, url string) (*gorm.DB, error) {
+	return gorm.Open(driver, url)
 }
 
 // Load .env file from root directory

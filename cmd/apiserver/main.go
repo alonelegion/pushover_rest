@@ -1,7 +1,8 @@
-package apiserver
+package main
 
 import (
 	"github.com/alonelegion/pushover_rest/internal/application"
+	"github.com/alonelegion/pushover_rest/internal/router"
 	"github.com/sirupsen/logrus"
 	"os"
 )
@@ -23,8 +24,21 @@ func main() {
 		os.Getenv("DATABASE_DRIVER"), dbURL+"?sslmode=disable",
 	)
 	if err != nil {
-
+		logger.Panic(err)
 	}
 
-	application.Init()
+	// init main application singleton instance
+	application.Init(db, logger)
+
+	routerEngine := router.NewRouter(logger)
+	serveErr := application.Serve(routerEngine, ":"+os.Getenv("APP_PORT"))
+	if serveErr != nil {
+		application.Logger().Panic(serveErr)
+	}
+
+	defer func() {
+		if err := db.Close(); err != nil {
+			application.Logger().Error(err)
+		}
+	}()
 }
