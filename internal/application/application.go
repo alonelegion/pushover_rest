@@ -5,11 +5,9 @@ import (
 	"github.com/alonelegion/pushover_rest/internal/queries"
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
-	"os"
 	"sync"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/sirupsen/logrus"
 )
@@ -26,6 +24,7 @@ type Dependencies struct {
 }
 
 var (
+	// Current Application
 	instance *Application
 	once     sync.Once
 )
@@ -36,21 +35,16 @@ var (
 )
 
 // Initializing a Application
-func Init(db *gorm.DB, logger *logrus.Logger) *Application {
+func Init() *Application {
 	once.Do(func() {
 		envMode, errEnv := receiveEnvironmentMode()
 		if errEnv != nil {
-			logger.Warn(errEnv)
+			logrus.Warn(errEnv)
 		}
 
-		deps := &Dependencies{
-			BaseQuery: queries.InitQuery(db),
-		}
 		instance = &Application{
-			logger:       logger,
-			db:           db,
 			envMode:      envMode,
-			Dependencies: deps,
+			Dependencies: &Dependencies{},
 		}
 
 		// set default week start day to monday
@@ -59,37 +53,32 @@ func Init(db *gorm.DB, logger *logrus.Logger) *Application {
 	return instance
 }
 
-func Serve(r *gin.Engine, port string) error {
-	err := r.Run(port)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// Receive and validate environment mode from .env file
-func receiveEnvironmentMode() (EnvironmentMode, error) {
-	envMode := EnvironmentMode(os.Getenv("APP_ENV"))
-
-	switch envMode {
-	case Development, Production:
-		return envMode, nil
-	}
-
-	return Unknown, ErrInvalidEnvMode
-}
-
 func Get() *Application {
 	return instance
 }
 
-func (a *Application) Db() *gorm.DB {
+func (a *Application) DB() *gorm.DB {
 	return a.db
+}
+
+func (a *Application) SetDB(db *gorm.DB) {
+	a.db = db
 }
 
 func (a *Application) Logger() *logrus.Logger {
 	return a.logger
+}
+
+func (a *Application) SetLogger(logger *logrus.Logger) {
+	a.logger = logger
+}
+
+func (a *Application) EnvMode() EnvironmentMode {
+	return a.envMode
+}
+
+func (a *Application) Deps() *Dependencies {
+	return a.Dependencies
 }
 
 func Logger() *logrus.Logger {
@@ -97,5 +86,13 @@ func Logger() *logrus.Logger {
 }
 
 func DB() *gorm.DB {
-	return Get().Db()
+	return Get().DB()
+}
+
+func EnvMode() EnvironmentMode {
+	return Get().EnvMode()
+}
+
+func Deps() *Dependencies {
+	return Get().Deps()
 }
