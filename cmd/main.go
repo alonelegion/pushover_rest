@@ -15,7 +15,7 @@ func main() {
 	app := application.Init()
 
 	InitLogger(app)
-	InitDB(app)
+	//InitDB(app)
 
 	// if something goes wrong, catch it
 	defer func() {
