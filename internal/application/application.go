@@ -16,6 +16,7 @@ type Application struct {
 	db           *gorm.DB
 	logger       *logrus.Logger
 	envMode      EnvironmentMode
+	shutdowners  []Shutdown
 	Dependencies *Dependencies
 }
 
@@ -51,6 +52,10 @@ func Init() *Application {
 		now.WeekStartDay = time.Monday
 	})
 	return instance
+}
+
+func (a *Application) AddShutdown(s Shutdown) {
+	a.shutdowners = append(a.shutdowners, s)
 }
 
 func Get() *Application {

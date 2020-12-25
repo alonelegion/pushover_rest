@@ -51,6 +51,8 @@ func InitWebServer(app *application.Application) {
 		Handler: engine,
 	}
 
+	app.AddShutdown(server.Shutdown)
+
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
