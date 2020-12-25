@@ -5,6 +5,7 @@ import (
 	"github.com/alonelegion/pushover_rest/internal/application"
 	"github.com/alonelegion/pushover_rest/internal/queries"
 	"github.com/alonelegion/pushover_rest/internal/router"
+	"github.com/alonelegion/pushover_rest/internal/runners"
 	"net/http"
 	"os"
 )
@@ -59,4 +60,9 @@ func InitWebServer(app *application.Application) {
 			application.Logger().Panic(err)
 		}
 	}()
+}
+
+func InitRoutines(app *application.Application) {
+	erh := runners.ExternalRoutine()
+	app.AddShutdown(erh.Shutdown)
 }

@@ -1,8 +1,17 @@
 package main
 
 import (
+	"context"
 	"github.com/alonelegion/pushover_rest/internal/application"
 	"github.com/sirupsen/logrus"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+)
+
+const (
+	appShutdownDuration = 20 * time.Second
 )
 
 func main() {
@@ -26,5 +35,22 @@ func main() {
 		}
 	}()
 
+	InitRoutines(app)
 	InitWebServer(app)
+
+	// shutdown
+	<-GracefulShutdown()
+	app.Logger().Debug("SIGTERM signal received. Shutdown...")
+
+	ctx, forceCancel := context.WithTimeout(context.Background(), appShutdownDuration)
+	defer forceCancel()
+
+	app.Shutdown(ctx)
+}
+
+func GracefulShutdown() chan os.Signal {
+	done := make(chan os.Signal, 1)
+	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	return done
 }

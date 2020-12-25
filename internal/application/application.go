@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"errors"
 	"github.com/alonelegion/pushover_rest/internal/queries"
 	"github.com/jinzhu/gorm"
@@ -56,6 +57,34 @@ func Init() *Application {
 
 func (a *Application) AddShutdown(s Shutdown) {
 	a.shutdowners = append(a.shutdowners, s)
+}
+
+func (a *Application) Shutdown(ctx context.Context) {
+	wg := &sync.WaitGroup{}
+
+	for _, s := range a.shutdowners {
+		wg.Add(1)
+
+		go func(s Shutdown) {
+			if err := s(ctx); err != nil {
+				a.logger.Error(err)
+			}
+
+			wg.Done()
+		}(s)
+	}
+
+	wg.Wait()
+
+	defer a.CloseConnections()
+}
+
+func (a *Application) CloseConnections() {
+	if a.db != nil {
+		if err := a.db.Close(); err != nil {
+			a.logger.Error(err)
+		}
+	}
 }
 
 func Get() *Application {
