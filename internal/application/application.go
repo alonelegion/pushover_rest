@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 	"errors"
+	"github.com/alonelegion/pushover_rest/internal/cache"
 	"github.com/alonelegion/pushover_rest/internal/queries"
 	"github.com/jinzhu/gorm"
 	"github.com/jinzhu/now"
@@ -23,6 +24,7 @@ type Application struct {
 
 type Dependencies struct {
 	BaseQuery queries.Query
+	Storage   cache.Storager
 }
 
 var (
@@ -87,6 +89,14 @@ func (a *Application) CloseConnections() {
 	}
 }
 
+func (a *Application) Deps() *Dependencies {
+	return a.Dependencies
+}
+
+func (a *Application) Logger() *logrus.Logger {
+	return a.logger
+}
+
 func Get() *Application {
 	return instance
 }
@@ -99,20 +109,12 @@ func (a *Application) SetDB(db *gorm.DB) {
 	a.db = db
 }
 
-func (a *Application) Logger() *logrus.Logger {
-	return a.logger
-}
-
 func (a *Application) SetLogger(logger *logrus.Logger) {
 	a.logger = logger
 }
 
 func (a *Application) EnvMode() EnvironmentMode {
 	return a.envMode
-}
-
-func (a *Application) Deps() *Dependencies {
-	return a.Dependencies
 }
 
 func Logger() *logrus.Logger {
@@ -129,4 +131,8 @@ func EnvMode() EnvironmentMode {
 
 func Deps() *Dependencies {
 	return Get().Deps()
+}
+
+func Storage() cache.Storager {
+	return Deps().Storage
 }
