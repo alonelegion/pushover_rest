@@ -2,6 +2,7 @@ package router
 
 import (
 	v1 "github.com/alonelegion/pushover_rest/internal/controllers/v1"
+	"github.com/alonelegion/pushover_rest/pkg/gincache"
 	"github.com/alonelegion/pushover_rest/pkg/ginlogger"
 	"github.com/alonelegion/pushover_rest/pkg/recoverywriter"
 	"github.com/gin-gonic/gin"
@@ -23,6 +24,7 @@ func NewRouter(logger *logrus.Logger) *gin.Engine {
 	// Api
 	apiRouter := router.Group("api")
 	apiRouter.Use(gin.RecoveryWithWriter(recoverywriter.NewGinRecoverWriter(logger)))
+	apiRouter.Use(gincache.CacheResponse(logger))
 	mapV1Routes(apiRouter)
 
 	return router
